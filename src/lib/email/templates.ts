@@ -1,3 +1,6 @@
+/** Single source of truth for the transactional from-address. */
+export const EMAIL_FROM = "BlueBricks <noreply@bluebrics.com>";
+
 // Branded HTML email templates. Email clients need inline styles and
 // table-based layout; fonts fall back to Georgia (serif headings, matching
 // the site's Playfair look) and system sans for body text.
@@ -25,7 +28,7 @@ function shell(content: string): string {
             <tr>
               <td style="background-color:#0B0B0C;border-radius:14px 14px 0 0;padding:22px 32px;">
                 <span style="font-family:${sans};font-size:17px;font-weight:700;color:#ffffff;letter-spacing:-0.3px;">
-                  Hiranandani<span style="color:rgba(255,255,255,0.6);">Properties</span>
+                  Blue<span style="color:rgba(255,255,255,0.6);">Bricks</span>
                 </span>
               </td>
             </tr>
@@ -41,12 +44,12 @@ function shell(content: string): string {
             <tr>
               <td style="padding:20px 24px 0;">
                 <p style="font-family:${sans};font-size:11px;line-height:1.6;color:#9a9a9a;margin:0 0 6px;">
-                  HiranandaniProperties.in is an independent property listing platform and is not
+                  BlueBricks is an independent property listing platform and is not
                   affiliated with the Hiranandani Group. &ldquo;Hiranandani&rdquo; refers solely to the
                   Hiranandani Estate locality, Thane.
                 </p>
                 <p style="font-family:${sans};font-size:11px;color:#9a9a9a;margin:0;">
-                  &copy; ${new Date().getFullYear()} HiranandaniProperties &middot; Powered by ByteLights
+                  &copy; ${new Date().getFullYear()} BlueBricks &middot; Powered by ByteLights
                 </p>
               </td>
             </tr>
@@ -66,7 +69,7 @@ export function emailVerificationEmail(opts: {
   const name = escapeHtml(opts.name ?? "there");
   const otp = escapeHtml(opts.otp);
 
-  const subject = `${opts.otp} is your HiranandaniProperties verification code`;
+  const subject = `${opts.otp} is your BlueBricks verification code`;
 
   const content = `
     <p style="font-family:${sans};font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#9a9a9a;margin:0 0 14px;">
@@ -76,7 +79,7 @@ export function emailVerificationEmail(opts: {
       Confirm your email address
     </h1>
     <p style="font-family:${sans};font-size:14px;line-height:1.7;color:#555555;margin:0 0 24px;">
-      Hi ${name}, welcome to HiranandaniProperties! Use the code below to verify
+      Hi ${name}, welcome to BlueBricks! Use the code below to verify
       your email and activate your account. Tap and hold the code to copy it on
       your phone.
     </p>
@@ -108,7 +111,7 @@ export function passwordResetEmail(opts: {
   const otp = escapeHtml(opts.otp);
 
   // Code in the subject too — helps iOS/Android surface it as a copyable code
-  const subject = `${opts.otp} is your HiranandaniProperties password reset code`;
+  const subject = `${opts.otp} is your BlueBricks password reset code`;
 
   const content = `
     <p style="font-family:${sans};font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#9a9a9a;margin:0 0 14px;">
@@ -118,7 +121,7 @@ export function passwordResetEmail(opts: {
       Your verification code
     </h1>
     <p style="font-family:${sans};font-size:14px;line-height:1.7;color:#555555;margin:0 0 24px;">
-      Hi ${name}, use the code below to reset your HiranandaniProperties password.
+      Hi ${name}, use the code below to reset your BlueBricks password.
       Tap and hold the code to copy it on your phone.
     </p>
 

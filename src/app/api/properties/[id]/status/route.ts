@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Resend } from "resend";
-import { escapeHtml } from "@/lib/email/templates";
+import { escapeHtml, EMAIL_FROM } from "@/lib/email/templates";
 
 const getResend = () => new Resend(process.env.RESEND_API_KEY!);
 
@@ -66,9 +66,9 @@ export async function PATCH(
     for (const inquiry of pendingInquiries) {
       try {
         await getResend().emails.send({
-          from: "HiranandaniProperties <noreply@hiranandaniproperties.in>",
+          from: EMAIL_FROM,
           to: inquiry.seeker.email,
-          subject: "Property no longer available — HiranandaniProperties",
+          subject: "Property no longer available — BlueBricks",
           html: `<p>Hi ${escapeHtml(inquiry.seeker.name ?? "there")},</p><p>The property "<b>${escapeHtml(property.title)}</b>" you expressed interest in has been marked as rented/sold and is no longer available.</p><p>Browse other properties at ${process.env.NEXTAUTH_URL}/listings</p>`,
         });
       } catch {

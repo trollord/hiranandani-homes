@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { issueOtp } from "@/lib/otp";
-import { passwordResetEmail } from "@/lib/email/templates";
+import { passwordResetEmail, EMAIL_FROM } from "@/lib/email/templates";
 import { Resend } from "resend";
 
 const bodySchema = z.object({
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
   try {
     const { subject, html } = passwordResetEmail({ name: user.name, otp: issued.otp });
     await new Resend(process.env.RESEND_API_KEY!).emails.send({
-      from: "HiranandaniProperties <noreply@hiranandaniproperties.in>",
+      from: EMAIL_FROM,
       to: email,
       subject,
       html,

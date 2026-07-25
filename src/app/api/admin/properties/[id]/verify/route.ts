@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { Resend } from "resend";
-import { escapeHtml } from "@/lib/email/templates";
+import { escapeHtml, EMAIL_FROM } from "@/lib/email/templates";
 
 const getResend = () => new Resend(process.env.RESEND_API_KEY!);
 
@@ -69,14 +69,14 @@ export async function POST(
   try {
     if (action === "APPROVE") {
       await getResend().emails.send({
-        from: "HiranandaniProperties <noreply@hiranandaniproperties.in>",
+        from: EMAIL_FROM,
         to: property.owner.email!,
         subject: "Your listing has been approved!",
-        html: `<p>Your listing "<b>${escapeHtml(property.title)}</b>" is now live on HiranandaniProperties.</p><p><a href="${process.env.NEXTAUTH_URL}/listings/${property.id}">View listing</a></p>`,
+        html: `<p>Your listing "<b>${escapeHtml(property.title)}</b>" is now live on BlueBricks.</p><p><a href="${process.env.NEXTAUTH_URL}/listings/${property.id}">View listing</a></p>`,
       });
     } else {
       await getResend().emails.send({
-        from: "HiranandaniProperties <noreply@hiranandaniproperties.in>",
+        from: EMAIL_FROM,
         to: property.owner.email!,
         subject: "Update on your listing submission",
         html: `<p>Your listing "<b>${escapeHtml(property.title)}</b>" was not approved.</p><p>Reason: ${escapeHtml(notes ?? "No reason provided")}</p>`,

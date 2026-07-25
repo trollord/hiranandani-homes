@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { validatePhone } from "@/lib/validations/phone";
-import { newInquiryEmail } from "@/lib/email/templates";
+import { newInquiryEmail, EMAIL_FROM } from "@/lib/email/templates";
 import { Resend } from "resend";
 
 const getResend = () => new Resend(process.env.RESEND_API_KEY!);
@@ -77,7 +77,7 @@ export async function POST(
         baseUrl: process.env.NEXTAUTH_URL ?? "https://www.hiranandaniproperties.in",
       });
       await getResend().emails.send({
-        from: "HiranandaniProperties <noreply@hiranandaniproperties.in>",
+        from: EMAIL_FROM,
         to: property.owner.email,
         subject,
         html,

@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { registerSchema } from "@/lib/validations/user";
 import { issueOtp } from "@/lib/otp";
-import { emailVerificationEmail } from "@/lib/email/templates";
+import { emailVerificationEmail, EMAIL_FROM } from "@/lib/email/templates";
 import { Resend } from "resend";
 
 export async function POST(req: NextRequest) {
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
       if ("otp" in issued) {
         const { subject, html } = emailVerificationEmail({ name, otp: issued.otp });
         await new Resend(process.env.RESEND_API_KEY!).emails.send({
-          from: "HiranandaniProperties <noreply@hiranandaniproperties.in>",
+          from: EMAIL_FROM,
           to: email,
           subject,
           html,
