@@ -56,7 +56,7 @@ Test credentials after seeding:
 
 | Role  | Email                       | Password |
 |-------|-----------------------------|----------|
-| Admin | admin@hiranandanihomes.in   | admin123 |
+| Admin | admin@bluebrics.com   | admin123 |
 | Owner | owner@example.com           | owner123 |
 
 ---
