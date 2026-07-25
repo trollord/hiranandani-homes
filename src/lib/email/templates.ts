@@ -43,11 +43,6 @@ function shell(content: string): string {
             <!-- Footer -->
             <tr>
               <td style="padding:20px 24px 0;">
-                <p style="font-family:${sans};font-size:11px;line-height:1.6;color:#9a9a9a;margin:0 0 6px;">
-                  BlueBricks is an independent property listing platform and is not
-                  affiliated with the Hiranandani Group. &ldquo;Hiranandani&rdquo; refers solely to the
-                  Hiranandani Estate locality, Thane.
-                </p>
                 <p style="font-family:${sans};font-size:11px;color:#9a9a9a;margin:0;">
                   &copy; ${new Date().getFullYear()} BlueBricks &middot; Powered by ByteLights
                 </p>
