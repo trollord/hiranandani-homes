@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { MapPin, SlidersHorizontal, LayoutGrid, List, ArrowUpDown } from "lucide-react";
@@ -138,6 +138,21 @@ export default function ListingsContent() {
       setLoadingMore(false);
     }
   }, [properties.length, total, loadingMore, searchParams]);
+
+  // Infinite scroll: load the next batch as the sentinel nears the viewport
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) loadMore();
+      },
+      { rootMargin: "600px 0px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [loadMore]);
 
   function viewLink(key: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -286,18 +301,10 @@ export default function ListingsContent() {
               )}
           </div>
 
+          {/* Infinite-scroll sentinel — triggers the next batch automatically */}
+          {hasMore && <div ref={sentinelRef} className="h-1" aria-hidden />}
+
           <div className="mt-10 sm:mt-16 flex justify-center">
-            {hasMore && !loadingMore && (
-              <button
-                onClick={loadMore}
-                className="flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-white border border-[#e4e9ea] rounded-xl text-zinc-900 font-bold text-sm sm:text-base hover:bg-[#f2f4f4] transition-all active:scale-95"
-              >
-                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-                Load More Properties
-              </button>
-            )}
             {!hasMore && total > PAGE_SIZE && (
               <p className="text-xs sm:text-sm text-zinc-400">
                 All {total} properties shown
