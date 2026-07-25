@@ -103,6 +103,25 @@ model Property {
   @@index([locality])
 }
 
+// Own-data location index for the add-property address search.
+// Grows from listings + selected Google places (only placeId is stored from
+// Google, which their ToS allows indefinitely). Local hits cost nothing.
+model Location {
+  id        String   @id @default(cuid())
+  name      String
+  address   String
+  locality  String?
+  latitude  Float
+  longitude Float
+  placeId   String?  @unique
+  hits      Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([name, address])
+  @@index([name])
+}
+
 model PropertyImage {
   id         String   @id @default(cuid())
   propertyId String

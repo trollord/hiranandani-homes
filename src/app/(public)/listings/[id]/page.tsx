@@ -238,9 +238,41 @@ export default async function PropertyDetailPage({
             <div className="flex items-start gap-1.5 text-[#0B0B0C]/60 text-[13px] sm:text-sm mt-3">
               <MapPin className="h-4 w-4 shrink-0 mt-0.5 text-[#0B0B0C]/40" />
               <span>
-                {property.building}, {property.locality}, Hiranandani Estate, Thane
+                {property.building}, {property.locality}
+                {property.locality.includes("Hiranandani") ? "" : ", Hiranandani Estate"}, Thane
               </span>
             </div>
+
+            {/* About — fills the column beside the price card */}
+            <div className="mt-7 sm:mt-9 pt-7 sm:pt-9 border-t border-gray-100">
+              <SectionLabel title="About This Property" compact />
+              <p className="text-[#0B0B0C]/70 leading-[1.85] text-[14px] sm:text-[15px] whitespace-pre-line">
+                {property.description}
+              </p>
+            </div>
+
+            {/* Amenities */}
+            {amenities.length > 0 && (
+              <div className="mt-7 sm:mt-9 pt-7 sm:pt-9 border-t border-gray-100">
+                <SectionLabel title="Amenities" compact />
+                <div className="flex flex-wrap gap-2">
+                  {amenities.map((amenity) => {
+                    const Icon = getAmenityIcon(amenity);
+                    return (
+                      <span
+                        key={amenity}
+                        className="inline-flex items-center gap-2 bg-[#f2f4f4] rounded-full pl-3 pr-4 py-2"
+                      >
+                        <Icon className="h-3.5 w-3.5 text-[#0B0B0C]/50" strokeWidth={1.5} />
+                        <span className="text-[12px] text-[#0B0B0C]/75 font-medium leading-none">
+                          {amenity}
+                        </span>
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Right: Price Card — sticky on desktop, inline on mobile */}
@@ -335,7 +367,7 @@ export default async function PropertyDetailPage({
         </div>
 
         {/* ── Key Stats — dark band ── */}
-        <div className="bg-[#111111] rounded-2xl p-3 mt-8 sm:mt-12">
+        <div className="bg-[#111111] rounded-2xl p-3 mt-8 sm:mt-10">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
             {[
               {
@@ -385,40 +417,6 @@ export default async function PropertyDetailPage({
               </div>
             ))}
           </div>
-        </div>
-
-        {/* ── About + Amenities ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4 lg:gap-8 items-start mt-8 sm:mt-12">
-          {/* Left 60%: About */}
-          <div className="bg-[#fafafa] border border-gray-100 px-5 sm:px-8 pb-6 sm:pb-8 pt-5 sm:pt-6 rounded-2xl">
-            <SectionLabel title="About This Property" compact />
-            <p className="text-[#0B0B0C]/75 leading-[1.85] text-[14px] sm:text-[15px] whitespace-pre-line">
-              {property.description}
-            </p>
-          </div>
-
-          {/* Right 40%: Amenities */}
-          {amenities.length > 0 && (
-            <div className="bg-[#fafafa] border border-gray-100 px-5 sm:px-8 pb-6 sm:pb-8 pt-5 sm:pt-6 rounded-2xl">
-              <SectionLabel title="Amenities" compact />
-              <div className="flex flex-wrap gap-2">
-                {amenities.map((amenity) => {
-                  const Icon = getAmenityIcon(amenity);
-                  return (
-                    <span
-                      key={amenity}
-                      className="inline-flex items-center gap-2 bg-white border border-gray-200 rounded-full pl-2.5 pr-3.5 py-1.5"
-                    >
-                      <Icon className="h-3.5 w-3.5 text-[#0B0B0C]/50" strokeWidth={1.5} />
-                      <span className="text-[12px] text-[#0B0B0C]/75 font-medium leading-none">
-                        {amenity}
-                      </span>
-                    </span>
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* ── Location / Map ── */}

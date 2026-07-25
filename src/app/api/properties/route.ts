@@ -161,6 +161,22 @@ export async function POST(req: NextRequest) {
       data: { propertyId: property.id, price, source: "LISTING" },
     });
 
+    // Grow the location index from listing data (best effort)
+    try {
+      const locAddress = `${rest.address}, ${rest.locality}`;
+      await prisma.location.upsert({
+        where: { name_address: { name: rest.building, address: locAddress } },
+        update: { latitude: rest.latitude, longitude: rest.longitude },
+        create: {
+          name: rest.building,
+          address: locAddress,
+          locality: rest.locality,
+          latitude: rest.latitude,
+          longitude: rest.longitude,
+        },
+      });
+    } catch {}
+
     // Admin listings go live immediately — refresh the public pages
     if (property.status === "ACTIVE") {
       revalidatePath("/listings");
