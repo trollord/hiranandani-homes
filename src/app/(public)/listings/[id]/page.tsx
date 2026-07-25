@@ -146,28 +146,26 @@ export default async function PropertyDetailPage({
 
   if (!property) notFound();
 
-  // Count the view for analytics (never block the page on failure)
-  await prisma.property
-    .update({ where: { id }, data: { views: { increment: 1 } } })
-    .catch(() => {});
+  // View counter + registration check in parallel — one DB round-trip of
+  // latency instead of two, and a failed count never blocks the page
+  const [inquiry] = await Promise.all([
+    session?.user?.id
+      ? prisma.inquiry.findUnique({
+          where: {
+            propertyId_seekerId: { propertyId: id, seekerId: session.user.id },
+          },
+          select: { status: true },
+        })
+      : Promise.resolve(null),
+    prisma.property
+      .update({ where: { id }, data: { views: { increment: 1 } } })
+      .catch(() => {}),
+  ]);
+  const hasRegistered = inquiry != null;
 
   const isRent = property.listingType === "RENT";
 
   const galleryImages = property.images;
-
-  let hasRegistered = false;
-  if (session?.user?.id) {
-    const inquiry = await prisma.inquiry.findUnique({
-      where: {
-        propertyId_seekerId: {
-          propertyId: id,
-          seekerId: session.user.id,
-        },
-      },
-      select: { status: true },
-    });
-    hasRegistered = inquiry != null;
-  }
 
   const amenities = parseAmenities(property.amenities);
 
