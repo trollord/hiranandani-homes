@@ -55,3 +55,8 @@ export function turnaroundDays(
   const e = end ? new Date(end).getTime() : Date.now();
   return Math.max(0, Math.round((e - s) / 86_400_000));
 }
+
+/** True when a media URL (or filename) points at an uploaded video. */
+export function isVideoUrl(url: string): boolean {
+  return /\.(mp4|webm|mov)(\?|#|$)/i.test(url);
+}

@@ -6,6 +6,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useDropzone } from "react-dropzone";
+import { isVideoUrl } from "@/lib/utils/formatters";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,6 +52,11 @@ interface UploadedImage {
   isPrimary: boolean;
   uploading: boolean;
   error?: string;
+}
+
+// Video detection works for fresh uploads (File) and server-loaded media (URL)
+function isVideoMedia(m: { file?: File | null; preview: string }): boolean {
+  return m.file?.type?.startsWith("video/") ?? isVideoUrl(m.preview);
 }
 
 interface WizardData {
@@ -327,14 +333,15 @@ function Step2({
 }) {
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
-      const MAX_SIZE = 2 * 1024 * 1024;
-      const oversized = acceptedFiles.filter((f) => f.size > MAX_SIZE);
+      const maxFor = (f: File) =>
+        f.type.startsWith("video/") ? 50 * 1024 * 1024 : 2 * 1024 * 1024;
+      const oversized = acceptedFiles.filter((f) => f.size > maxFor(f));
       if (oversized.length > 0) {
         oversized.forEach((f) =>
-          toast.error(`"${f.name}" exceeds 2 MB and was removed.`)
+          toast.error(`"${f.name}" exceeds ${f.type.startsWith("video/") ? "50" : "2"} MB and was removed.`)
         );
       }
-      const validFiles = acceptedFiles.filter((f) => f.size <= MAX_SIZE);
+      const validFiles = acceptedFiles.filter((f) => f.size <= maxFor(f));
       if (validFiles.length === 0) return;
 
       const newImages: UploadedImage[] = validFiles.map((file) => ({
@@ -346,8 +353,9 @@ function Step2({
         uploading: true,
       }));
 
-      if (images.length === 0 && newImages.length > 0) {
-        newImages[0].isPrimary = true;
+      if (!images.some((i) => i.isPrimary)) {
+        const firstPhoto = newImages.find((mm) => !mm.file?.type.startsWith("video/"));
+        if (firstPhoto) firstPhoto.isPrimary = true;
       }
 
       onImagesChange([...images, ...newImages]);
@@ -393,7 +401,7 @@ function Step2({
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { "image/jpeg": [], "image/png": [], "image/webp": [], "image/heic": [] },
+    accept: { "image/jpeg": [], "image/png": [], "image/webp": [], "image/heic": [], "video/mp4": [], "video/webm": [], "video/quicktime": [] },
     maxFiles: 10,
   });
 
@@ -431,9 +439,9 @@ function Step2({
         <input {...getInputProps()} />
         <Upload className="h-8 w-8 mx-auto text-gray-400 mb-3" />
         <p className="text-sm font-medium text-gray-700">
-          {isDragActive ? "Drop photos here" : "Drag & drop photos here"}
+          {isDragActive ? "Drop photos or videos here" : "Drag & drop photos or videos here"}
         </p>
-        <p className="text-xs text-gray-500 mt-1">or click to browse · JPEG, PNG, WebP, HEIC · up to 10 photos</p>
+        <p className="text-xs text-gray-500 mt-1">or click to browse · images up to 2 MB · MP4/WebM/MOV videos up to 50 MB · 10 files max</p>
       </div>
 
       {images.length > 0 && (
@@ -446,7 +454,12 @@ function Step2({
               }`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={img.preview} alt={`Photo ${idx + 1}`} className="w-full h-32 object-cover" />
+              {isVideoMedia(img) ? (
+                <video src={img.preview} className="w-full h-32 object-cover" muted playsInline controls preload="metadata" />
+              ) : (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={img.preview} alt={`Photo ${idx + 1}`} className="w-full h-32 object-cover" />
+              )}
               {img.uploading && (
                 <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
                   <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
@@ -459,10 +472,12 @@ function Step2({
               )}
               {!img.uploading && !img.error && (
                 <div className="absolute top-1.5 right-1.5 flex gap-1">
+                  {!isVideoMedia(img) && (
                   <button type="button" onClick={() => setPrimary(idx)} title="Set as primary"
                     className={`p-1 rounded-full transition-colors ${img.isPrimary ? "bg-blue-500 text-white" : "bg-white/80 text-gray-600 hover:bg-yellow-400 hover:text-white"}`}>
                     <Star className="h-3 w-3" />
                   </button>
+                )}
                   <button type="button" onClick={() => removeImage(idx)}
                     className="p-1 rounded-full bg-white/80 text-gray-600 hover:bg-red-500 hover:text-white transition-colors">
                     <X className="h-3 w-3" />
@@ -735,7 +750,12 @@ function Step4({
           {images.map((img, i) => (
             <div key={i} className="relative">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={img.preview} alt={`Photo ${i + 1}`} className="h-16 w-20 object-cover rounded-lg border border-gray-200" />
+              {isVideoMedia(img) ? (
+                <video src={img.preview} className="h-16 w-20 object-cover rounded-lg border border-gray-200" muted playsInline preload="metadata" />
+              ) : (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={img.preview} alt={`Photo ${i + 1}`} className="h-16 w-20 object-cover rounded-lg border border-gray-200" />
+              )}
               {img.isPrimary && (
                 <span className="absolute bottom-0.5 left-0.5 text-[9px] bg-blue-500 text-white px-1 rounded">Primary</span>
               )}

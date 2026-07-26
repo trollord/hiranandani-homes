@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 
-import { formatPrice, formatArea } from "@/lib/utils/formatters";
+import { formatPrice, formatArea, isVideoUrl } from "@/lib/utils/formatters";
 import { PROPERTY_TYPE_LABELS, LISTING_TYPE_LABELS, FURNISHED_LABELS } from "@/lib/constants";
 import { CardContainer, CardBody, CardItem } from "@/components/ui/3d-card";
 import { ImageOff, BedDouble } from "lucide-react";
@@ -36,7 +36,8 @@ interface Props {
 }
 
 export default function PropertyCard({ property, variant = "grid" }: Props) {
-  const primaryImage = property.images.find((i) => i.isPrimary) ?? property.images[0];
+  const stills = property.images.filter((i) => !isVideoUrl(i.url));
+  const primaryImage = stills.find((i) => i.isPrimary) ?? stills[0];
   const isRent = property.listingType === "RENT";
   const availabilityLabel =
     property.availableFrom === "IMMEDIATE"

@@ -2,7 +2,8 @@
 
 import { useState, useRef, useCallback } from "react";
 import Image from "next/image";
-import { ChevronRight, ChevronLeft, ImageOff, X } from "lucide-react";
+import { ChevronRight, ChevronLeft, ImageOff, X, Play } from "lucide-react";
+import { isVideoUrl } from "@/lib/utils/formatters";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface GalleryImage {
@@ -14,6 +15,56 @@ interface GalleryImage {
 interface Props {
   images: GalleryImage[];
   title: string;
+}
+
+/* Renders an image via next/image or a video element for uploaded videos.
+   Non-interactive videos show a muted first frame with a play badge. */
+function GalleryMedia({
+  url,
+  alt,
+  sizes,
+  priority = false,
+  contain = false,
+  interactive = false,
+}: {
+  url: string;
+  alt: string;
+  sizes: string;
+  priority?: boolean;
+  contain?: boolean;
+  interactive?: boolean;
+}) {
+  if (isVideoUrl(url)) {
+    return (
+      <>
+        <video
+          src={url}
+          className={`absolute inset-0 w-full h-full ${contain ? "object-contain" : "object-cover"}`}
+          muted
+          playsInline
+          preload="metadata"
+          controls={interactive}
+        />
+        {!interactive && (
+          <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <span className="bg-black/50 backdrop-blur-sm rounded-full p-2.5">
+              <Play className="w-4 h-4 text-white" fill="white" />
+            </span>
+          </span>
+        )}
+      </>
+    );
+  }
+  return (
+    <Image
+      src={url}
+      alt={alt}
+      fill
+      className={contain ? "object-contain" : "object-cover"}
+      sizes={sizes}
+      priority={priority}
+    />
+  );
 }
 
 function ImageSlide({
@@ -35,14 +86,7 @@ function ImageSlide({
       {/* Primary — 60% */}
       <div className={`col-span-3 relative overflow-hidden ${cls}`}>
         {a ? (
-          <Image
-            src={a.url}
-            alt={`${title} ${startIndex + 1}`}
-            fill
-            className="object-cover"
-            sizes="60vw"
-            priority={startIndex === 0}
-          />
+          <GalleryMedia url={a.url} alt={`${title} ${startIndex + 1}`} sizes="60vw" priority={startIndex === 0} interactive />
         ) : (
           <div className="w-full h-full bg-zinc-100" />
         )}
@@ -52,26 +96,14 @@ function ImageSlide({
       <div className="col-span-2 grid grid-rows-2 gap-1">
         <div className={`relative overflow-hidden ${cls}`}>
           {b ? (
-            <Image
-              src={b.url}
-              alt={`${title} ${startIndex + 2}`}
-              fill
-              className="object-cover"
-              sizes="40vw"
-            />
+            <GalleryMedia url={b.url} alt={`${title} ${startIndex + 2}`} sizes="40vw" interactive />
           ) : (
             <div className="w-full h-full bg-zinc-100" />
           )}
         </div>
         <div className={`relative overflow-hidden ${cls}`}>
           {c ? (
-            <Image
-              src={c.url}
-              alt={`${title} ${startIndex + 3}`}
-              fill
-              className="object-cover"
-              sizes="40vw"
-            />
+            <GalleryMedia url={c.url} alt={`${title} ${startIndex + 3}`} sizes="40vw" interactive />
           ) : (
             <div className="w-full h-full bg-zinc-100" />
           )}
@@ -142,14 +174,7 @@ export default function PropertyGallery({ images, title }: Props) {
                 onClick={() => openExpanded(i)}
                 aria-label={`View photo ${i + 1}`}
               >
-                <Image
-                  src={img.url}
-                  alt={`${title} ${i + 1}`}
-                  fill
-                  className="object-cover"
-                  sizes="100vw"
-                  priority={i === 0}
-                />
+                <GalleryMedia url={img.url} alt={`${title} ${i + 1}`} sizes="100vw" priority={i === 0} />
               </button>
             ))}
           </div>
@@ -181,13 +206,7 @@ export default function PropertyGallery({ images, title }: Props) {
                 }}
                 aria-label={`Go to photo ${i + 1}`}
               >
-                <Image
-                  src={img.url}
-                  alt=""
-                  fill
-                  className="object-cover"
-                  sizes="52px"
-                />
+                <GalleryMedia url={img.url} alt="" sizes="52px" />
               </button>
             ))}
           </div>
@@ -238,13 +257,13 @@ export default function PropertyGallery({ images, title }: Props) {
 
               {/* ── Mobile lightbox: single image ── */}
               <div className="md:hidden w-full h-full relative rounded-lg overflow-hidden bg-black">
-                <Image
-                  src={images[mobileExpandedIdx].url}
+                <GalleryMedia
+                  url={images[mobileExpandedIdx].url}
                   alt={`${title} ${mobileExpandedIdx + 1}`}
-                  fill
-                  className="object-contain"
                   sizes="100vw"
                   priority
+                  contain
+                  interactive
                 />
                 {mobileExpandedIdx > 0 && (
                   <button

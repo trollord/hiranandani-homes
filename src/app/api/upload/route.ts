@@ -3,8 +3,10 @@ import { auth } from "@/lib/auth";
 import { getPresignedUploadUrl } from "@/lib/s3";
 import { randomUUID } from "crypto";
 
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic"];
-const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024; // 2 MB
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic"];
+const VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"];
+const MAX_IMAGE_BYTES = 2 * 1024 * 1024;   // 2 MB
+const MAX_VIDEO_BYTES = 50 * 1024 * 1024;  // 50 MB
 const MAX_UPLOADS_PER_DAY = 20;
 
 // In-memory rate limiter — resets on server restart (fine for single-server)
@@ -37,7 +39,7 @@ export async function GET(req: NextRequest) {
 
   if (!checkRateLimit(session.user.id)) {
     return NextResponse.json(
-      { error: "Upload limit reached. You can upload up to 20 images per day." },
+      { error: "Upload limit reached. You can upload up to 20 files per day." },
       { status: 429 }
     );
   }
@@ -54,23 +56,27 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  if (!ALLOWED_TYPES.includes(contentType)) {
+  const isVideo = VIDEO_TYPES.includes(contentType);
+  if (!IMAGE_TYPES.includes(contentType) && !isVideo) {
     return NextResponse.json(
-      { error: "Only JPEG, PNG, WebP, and HEIC images are allowed" },
+      { error: "Only JPEG, PNG, WebP, HEIC images or MP4, WebM, MOV videos are allowed" },
       { status: 400 }
     );
   }
 
-  if (!fileSize || fileSize > MAX_FILE_SIZE_BYTES) {
+  const maxBytes = isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
+  if (!fileSize || fileSize > maxBytes) {
     return NextResponse.json(
-      { error: "File must be under 2 MB" },
+      { error: isVideo ? "Videos must be under 50 MB" : "Images must be under 2 MB" },
       { status: 400 }
     );
   }
 
-  // Sanitise extension — only allow safe image extensions
+  // Sanitise extension — only allow safe media extensions
   const rawExt = filename.split(".").pop()?.toLowerCase() ?? "jpg";
-  const safeExt = ["jpg", "jpeg", "png", "webp", "heic"].includes(rawExt) ? rawExt : "jpg";
+  const safeExt = ["jpg", "jpeg", "png", "webp", "heic", "mp4", "webm", "mov"].includes(rawExt)
+    ? rawExt
+    : isVideo ? "mp4" : "jpg";
   const s3Key = `properties/${session.user.id}/${randomUUID()}.${safeExt}`;
 
   const presignedUrl = await getPresignedUploadUrl(s3Key, contentType);
