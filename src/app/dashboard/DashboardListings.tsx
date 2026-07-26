@@ -284,6 +284,14 @@ export default function DashboardListings({
                   <Button
                     size="sm"
                     variant="outline"
+                    onClick={() => router.push(`/listings/${property.id}`)}
+                  >
+                    View
+                  </Button>
+
+                  <Button
+                    size="sm"
+                    variant="outline"
                     onClick={() => router.push(`/dashboard/listings/${property.id}/edit`)}
                   >
                     Edit

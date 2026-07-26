@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
@@ -40,9 +41,10 @@ export const revalidate = 3600;
 // cache() dedupes the query between generateMetadata and the page render
 const getProperty = cache(async (id: string) => {
   return prisma.property.findUnique({
-    where: { id, status: "ACTIVE" },
+    where: { id },
     select: {
       id: true,
+      status: true,
       title: true,
       description: true,
       type: true,
@@ -87,6 +89,13 @@ export async function generateMetadata({
   const { id } = await params;
   const property = await getProperty(id);
   if (!property) return { title: "Property Not Found" };
+
+  if (property.status !== "ACTIVE") {
+    return {
+      title: property.status === "PENDING" ? "Property Under Review" : "Property Unavailable",
+      robots: { index: false },
+    };
+  }
 
   return {
     title: property.title,
@@ -134,6 +143,37 @@ function SectionLabel({ title, compact, withLine }: { title: string; compact?: b
   );
 }
 
+/* ── Friendly screen for non-live listings (instead of a 404) ── */
+function StatusScreen({ pending }: { pending: boolean }) {
+  return (
+    <div className="min-h-dvh bg-white flex items-center justify-center px-6">
+      <div className="max-w-md text-center">
+        <div className="w-14 h-14 rounded-full bg-[#f2f4f4] flex items-center justify-center mx-auto mb-6">
+          {pending ? (
+            <CalendarClock className="h-6 w-6 text-[#0B0B0C]/50" strokeWidth={1.5} />
+          ) : (
+            <Building2 className="h-6 w-6 text-[#0B0B0C]/50" strokeWidth={1.5} />
+          )}
+        </div>
+        <h1 className="font-[family-name:var(--font-playfair)] text-2xl sm:text-3xl font-bold text-[#0B0B0C] mb-3">
+          {pending ? "This property is being verified" : "This property is no longer available"}
+        </h1>
+        <p className="text-sm text-[#0B0B0C]/55 leading-relaxed mb-8">
+          {pending
+            ? "Our team is reviewing this listing to make sure everything checks out. Please check back a little later."
+            : "The owner has taken this listing off the market. Explore other verified homes in Hiranandani Estate."}
+        </p>
+        <Link
+          href="/listings"
+          className="inline-block bg-[#0B0B0C] text-white text-sm font-medium px-7 py-3 rounded-full hover:bg-[#0B0B0C]/90 transition-colors"
+        >
+          Browse Other Properties
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 export default async function PropertyDetailPage({
   params,
   searchParams,
@@ -146,8 +186,18 @@ export default async function PropertyDetailPage({
 
   if (!property) notFound();
 
-  // View counter + registration check in parallel — one DB round-trip of
-  // latency instead of two, and a failed count never blocks the page
+  const isOwner = !!session?.user?.id && session.user.id === property.owner.id;
+  const isAdmin = session?.user?.role === "ADMIN";
+  const canPreview = isOwner || isAdmin;
+
+  // Non-live listings: owners/admins see a full preview with a status banner;
+  // everyone else gets a friendly status screen instead of a 404
+  if (property.status !== "ACTIVE" && !canPreview) {
+    return <StatusScreen pending={property.status === "PENDING"} />;
+  }
+
+  // View counter (public views of live listings only) + registration check,
+  // in parallel — and a failed count never blocks the page
   const [inquiry] = await Promise.all([
     session?.user?.id
       ? prisma.inquiry.findUnique({
@@ -157,11 +207,33 @@ export default async function PropertyDetailPage({
           select: { status: true },
         })
       : Promise.resolve(null),
-    prisma.property
-      .update({ where: { id }, data: { views: { increment: 1 } } })
-      .catch(() => {}),
+    property.status === "ACTIVE" && !isOwner
+      ? prisma.property
+          .update({ where: { id }, data: { views: { increment: 1 } } })
+          .catch(() => {})
+      : Promise.resolve(null),
   ]);
   const hasRegistered = inquiry != null;
+
+  const previewBanner =
+    property.status === "ACTIVE"
+      ? null
+      : property.status === "PENDING"
+      ? {
+          cls: "bg-amber-50 border-amber-200 text-amber-800",
+          text: isAdmin && !isOwner
+            ? "This listing is pending review — it is not publicly visible yet."
+            : "Your listing is under review. Only you can see this page — it goes live once our team approves it.",
+        }
+      : property.status === "REJECTED"
+      ? {
+          cls: "bg-red-50 border-red-200 text-red-700",
+          text: "This listing was not approved and is not publicly visible. Edit and resubmit it from your dashboard.",
+        }
+      : {
+          cls: "bg-gray-100 border-gray-200 text-gray-600",
+          text: "This listing is inactive and not publicly visible.",
+        };
 
   const isRent = property.listingType === "RENT";
 
@@ -194,6 +266,12 @@ export default async function PropertyDetailPage({
 
       {/* ── Hero Gallery ──────────────────────────────────────────────────── */}
       <div className="pt-[72px] sm:pt-[84px] max-w-6xl mx-auto px-3 sm:px-6 lg:px-10">
+        {previewBanner && (
+          <div className={`flex items-start gap-2.5 border rounded-xl px-4 py-3 mb-4 text-[13px] leading-relaxed ${previewBanner.cls}`}>
+            <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5" />
+            <span>{previewBanner.text}</span>
+          </div>
+        )}
         <PropertyGallery images={galleryImages} title={property.title} />
       </div>
 

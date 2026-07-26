@@ -44,12 +44,33 @@ export default async function InterestsPage() {
 
   return (
     <div>
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">My Interests</h1>
         <p className="text-sm text-gray-500 mt-1">
           Properties you&apos;ve registered interest in
         </p>
       </div>
+
+      {/* Seller path — seekers otherwise have no route to listing a property */}
+      {session.user.role === "USER" && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#0B0B0C] rounded-xl px-5 sm:px-6 py-4 sm:py-5 mb-8">
+          <div>
+            <p className="text-white font-semibold text-sm sm:text-[15px]">
+              Own a property in Hiranandani Estate?
+            </p>
+            <p className="text-white/50 text-xs sm:text-[13px] mt-0.5">
+              List it for free and connect directly with verified seekers — zero brokerage.
+            </p>
+          </div>
+          <Link
+            href="/become-owner"
+            className="inline-flex items-center gap-2 bg-white text-[#0B0B0C] text-sm font-semibold px-5 py-2.5 rounded-full hover:bg-white/90 transition-colors shrink-0 w-fit"
+          >
+            List Your Property
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      )}
 
       {inquiries.length === 0 ? (
         <div className="text-center py-24 border-2 border-dashed border-gray-200 rounded-xl bg-white">

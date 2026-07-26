@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { auth, invalidateUserAccess } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function POST() {
@@ -17,6 +17,9 @@ export async function POST() {
       where: { id: session.user.id },
       data: { role: "OWNER" },
     });
+
+    // Role is TTL-cached — flush it so the upgrade applies on the next request
+    invalidateUserAccess(session.user.id);
 
     return NextResponse.json({ message: "Role updated to OWNER" });
   } catch (err) {
