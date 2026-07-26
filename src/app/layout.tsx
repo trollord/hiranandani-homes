@@ -24,24 +24,31 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXTAUTH_URL ?? "https://www.bluebrics.com"),
   title: {
-    default: "BlueBricks — Real Estate Advisors",
+    default: "BlueBricks — Houses & Flats in Hiranandani Estate, Thane | Zero Brokerage",
     template: "%s | BlueBricks",
   },
   description:
-    "Discover exceptional homes in Hiranandani Estate, Thane. Zero brokerage — browse listings and connect directly with verified owners for free.",
+    "Find verified houses and flats for rent and sale in Hiranandani Estate, Thane. Connect directly with owners — zero brokerage, free to browse and register interest.",
   keywords: [
-    "Hiranandani Estate",
-    "Hiranandani properties",
+    "houses in Hiranandani Estate",
+    "flats in Hiranandani Estate Thane",
+    "Hiranandani Estate rent",
+    "Hiranandani Estate flats for sale",
+    "Hiranandani Meadows",
+    "Rodas Enclave",
+    "One Hiranandani Park",
     "Thane real estate",
+    "zero brokerage Thane",
     "flats for rent Thane",
     "flats for sale Thane",
-    "luxury homes Thane",
   ],
+  alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     locale: "en_IN",
-    url: "https://www.hiranandaniproperties.in",
+    url: "/",
     siteName: "BlueBricks",
   },
 };
@@ -58,6 +65,29 @@ export default async function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <body className="font-sans antialiased bg-background text-foreground">
+        {/* Structured data: who we are + site search entity */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify([
+              {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                name: "BlueBricks",
+                url: process.env.NEXTAUTH_URL ?? "https://www.bluebrics.com",
+                description:
+                  "Independent zero-brokerage property listing platform for Hiranandani Estate, Thane.",
+                areaServed: "Hiranandani Estate, Thane, Maharashtra, India",
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                name: "BlueBricks",
+                url: process.env.NEXTAUTH_URL ?? "https://www.bluebrics.com",
+              },
+            ]),
+          }}
+        />
         {/* Google Analytics (gtag.js) */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-41296L6STP"

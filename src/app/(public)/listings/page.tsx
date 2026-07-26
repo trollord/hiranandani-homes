@@ -1,4 +1,12 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Houses & Flats in Hiranandani Estate, Thane — Rent & Buy",
+  description:
+    "Browse verified houses and flats for rent and sale across Hiranandani Estate, Hiranandani Meadows, Rodas Enclave and One Hiranandani Park in Thane. Direct owner contact, zero brokerage.",
+  alternates: { canonical: "/listings" },
+};
 import FilterPanel from "@/components/search/FilterPanel";
 import ListingsContent from "@/components/property/ListingsContent";
 import WelcomeTour from "@/components/tour/WelcomeTour";

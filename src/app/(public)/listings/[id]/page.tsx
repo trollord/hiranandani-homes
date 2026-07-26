@@ -255,6 +255,41 @@ export default async function PropertyDetailPage({
         }
       : null;
 
+  const listingJsonLd =
+    property.status === "ACTIVE"
+      ? {
+          "@context": "https://schema.org",
+          "@type": "RealEstateListing",
+          name: property.title,
+          description: property.description.slice(0, 300),
+          url: `${process.env.NEXTAUTH_URL ?? "https://www.bluebrics.com"}/listings/${property.id}`,
+          image: property.images.filter((i) => !i.url.match(/\.(mp4|webm|mov)$/i)).map((i) => i.url),
+          datePosted: property.createdAt.toISOString(),
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: `${property.building}, ${property.locality}`,
+            addressLocality: "Thane",
+            addressRegion: "Maharashtra",
+            addressCountry: "IN",
+          },
+          ...(property.latitude && property.longitude
+            ? {
+                geo: {
+                  "@type": "GeoCoordinates",
+                  latitude: property.latitude,
+                  longitude: property.longitude,
+                },
+              }
+            : {}),
+          offers: {
+            "@type": "Offer",
+            price: property.price,
+            priceCurrency: "INR",
+            availability: "https://schema.org/InStock",
+          },
+        }
+      : null;
+
   /* Split title for italic portion after comma */
   const titleParts = property.title.split(",");
   const mainTitle = titleParts[0];
@@ -263,6 +298,12 @@ export default async function PropertyDetailPage({
 
   return (
     <div className="min-h-screen bg-white">
+      {listingJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(listingJsonLd) }}
+        />
+      )}
 
       {/* ── Hero Gallery ──────────────────────────────────────────────────── */}
       <div className="pt-[72px] sm:pt-[84px] max-w-6xl mx-auto px-3 sm:px-6 lg:px-10">

@@ -1,6 +1,7 @@
 export const PLATFORM_FEE_INR = 9999;
 export const CURRENCY = "INR";
 export const SITE_NAME = "BlueBricks";
+export const SITE_URL = process.env.NEXTAUTH_URL ?? "https://www.bluebrics.com";
 export const SITE_TAGLINE = "Your Trusted Real Estate Advisors in Hiranandani Estate";
 
 export const HIRANANDANI_LOCALITIES = [
